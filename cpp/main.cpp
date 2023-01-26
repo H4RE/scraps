@@ -6,7 +6,7 @@
 
 namespace cvu
 {
-    cv::Mat contrast_limited_adaptive_histgram_equalization(const cv::Mat_<uchar> &src, cv::Size tile = cv::Size(8, 8), float clip_limit = 2.f)
+    cv::Mat contrast_limited_adaptive_histogram_equalization(const cv::Mat_<uchar> &src, cv::Size tile = cv::Size(8, 8), float clip_limit = 2.f)
     {
         cv::Mat_<uchar> dest = cv::Mat_<uchar>::zeros(src.size());
         cv::Mat_<uchar> src_ex;
@@ -23,7 +23,7 @@ namespace cvu
 
         std::vector<std::array<int, 256>> hist_vec;
 
-        // calculate histgram on each tiles.
+        // calculate histogram on each tiles.
         for (int y = 0; y < src_ex.rows; y += tile_size.height)
         {
             for (int x = 0; x < src_ex.cols; x += tile_size.width)
@@ -39,7 +39,7 @@ namespace cvu
                 hist_vec.emplace_back(hist);
             }
         }
-        // redestribute clipped pixels.
+        // redistribute clipped pixels.
         if(clip_limit>0)
         for (auto &hist : hist_vec)
         {
@@ -90,7 +90,7 @@ namespace cvu
                 const cv::Point p(x, y);
                 if (p.x < src.cols && p.y < src.rows)
                 {
-                    float vx = ((float)p.x) / tile_size.width - 0.5f; //
+                    float vx = ((float)p.x) / tile_size.width - 0.5f;
                     int left = std::floor(vx);
                     int right = left + 1;
                     float ax = vx - left;
@@ -98,7 +98,7 @@ namespace cvu
                     right = std::min(right, tile.width - 1);
                     left = std::max(left, 0);
 
-                    float vy = ((float)p.y) / tile_size.height - 0.5f; //
+                    float vy = ((float)p.y) / tile_size.height - 0.5f;
                     int top = std::floor(vy);
                     int bottom = top + 1;
                     float ay = vy - top;
@@ -118,8 +118,8 @@ namespace cvu
             }
         }
         return dest;
-    } // contrast_limited_adaptive_histgram_equalization
-    const auto clahe = contrast_limited_adaptive_histgram_equalization;
+    } // contrast_limited_adaptive_histogram_equalization
+    const auto clahe = contrast_limited_adaptive_histogram_equalization;
 } // namespace
 
 int main(int argc, char **argv)
