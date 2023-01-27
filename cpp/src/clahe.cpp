@@ -1,8 +1,16 @@
 #include <clahe.hpp>
+#undef NDEBUG
+#include <assert.h>  
 namespace cvu
 {
     cv::Mat contrast_limited_adaptive_histogram_equalization(const cv::Mat_<uchar> &src, cv::Size tile, float clip_limit)
     {
+        assert(tile.area()>0);
+        assert(clip_limit>=0.f);
+
+        CV_Assert(src.type()==CV_8UC1);
+        CV_Assert(!src.empty());
+
         cv::Mat_<uchar> dest = cv::Mat_<uchar>::zeros(src.size());
         cv::Mat_<uchar> src_ex;
         {

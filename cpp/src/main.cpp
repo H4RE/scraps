@@ -9,7 +9,7 @@
 int main(int argc, char **argv)
 {
     const std::string path = argv[1];
-    cv::Mat_<uchar> src = cv::imread(path, cv::IMREAD_GRAYSCALE);
+    cv::Mat src = cv::imread(path, cv::IMREAD_GRAYSCALE);
 
     cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(4, cv::Size(8, 8));
     cv::Mat dest_cv;
