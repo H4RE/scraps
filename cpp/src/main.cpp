@@ -5,17 +5,19 @@
 #include <opencv2/opencv.hpp>
 #include <clahe.hpp>
 
-
 int main(int argc, char **argv)
 {
     const std::string path = argv[1];
-    cv::Mat src = cv::imread(path, cv::IMREAD_GRAYSCALE);
+    const cv::Mat src = cv::imread(path, cv::IMREAD_GRAYSCALE);
 
-    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(4, cv::Size(8, 8));
+    const cv::Size tiles(7, 13);
+    const float clip_limit = 4.0;
+
+    const cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(clip_limit, tiles);
     cv::Mat dest_cv;
     clahe->apply(src, dest_cv);
 
-    cv::Mat dest = cvu::clahe(src, cv::Size(8,8), 4);
+    cv::Mat dest = cvu::clahe(src, tiles, clip_limit);
 
     cv::imshow("src", src);
     cv::imshow("dest", dest);

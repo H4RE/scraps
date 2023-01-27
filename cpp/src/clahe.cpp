@@ -1,14 +1,14 @@
 #include <clahe.hpp>
 #undef NDEBUG
-#include <assert.h>  
+#include <assert.h>
 namespace cvu
 {
-    cv::Mat contrast_limited_adaptive_histogram_equalization(const cv::Mat_<uchar> &src, cv::Size tile, float clip_limit)
+    cv::Mat contrast_limited_adaptive_histogram_equalization(const cv::Mat &src, cv::Size tile, float clip_limit)
     {
-        assert(tile.area()>0);
-        assert(clip_limit>=0.f);
+        assert(tile.area() > 0);
+        assert(clip_limit >= 0.f);
 
-        CV_Assert(src.type()==CV_8UC1);
+        CV_Assert(src.type() == CV_8UC1);
         CV_Assert(!src.empty());
 
         cv::Mat_<uchar> dest = cv::Mat_<uchar>::zeros(src.size());
@@ -22,7 +22,6 @@ namespace cvu
         cv::Size tile_size = cv::Size(src_ex.cols / tile.width, src_ex.rows / tile.height);
         int clip_limit_i = static_cast<int>((clip_limit * tile_size.area()) / 256);
         clip_limit_i = std::max(clip_limit_i, 1);
-        std::cout << clip_limit_i << "\n";
 
         std::vector<std::array<int, 256>> hist_vec;
 
@@ -43,40 +42,42 @@ namespace cvu
             }
         }
         // redistribute clipped pixels.
-        if(clip_limit>0)
-        for (auto &hist : hist_vec)
+        if (clip_limit_i > 0)
         {
-            int total = 0;
-            for (int i = 0; i < hist.size(); i++)
+            for (auto &hist : hist_vec)
             {
-                if (hist.at(i) > clip_limit_i)
+                int total = 0;
+                for (int i = 0; i < hist.size(); i++)
                 {
-                    total += hist.at(i) - clip_limit_i;
-                    hist.at(i) = clip_limit_i;
+                    if (hist.at(i) > clip_limit_i)
+                    {
+                        total += hist.at(i) - clip_limit_i;
+                        hist.at(i) = clip_limit_i;
+                    }
                 }
-            }
-            const int n = total / hist.size();
-            for (int i = 0; i < hist.size(); i++)
-            {
-                hist.at(i) += n;
-            }
-            int m = total - n * hist.size();
-            if (m != 0)
-            {
-                const int step = std::max((int)hist.size() / m, 1);
-                for (int i = 0; i < hist.size() && m > 0; i += step, m--)
+                const int n = total / hist.size();
+                for (int i = 0; i < hist.size(); i++)
                 {
-                    hist.at(i)++;
+                    hist.at(i) += n;
+                }
+                int m = total - n * hist.size();
+                if (m != 0)
+                {
+                    const int step = std::max((int)hist.size() / m, 1);
+                    for (int i = 0; i < hist.size() && m > 0; i += step, m--)
+                    {
+                        hist.at(i)++;
+                    }
                 }
             }
         }
 
         // calculate look up table
-        std::vector<std::array<int, 256>> lut_vec;
+        std::vector<std::array<uchar, 256>> lut_vec;
         for (auto &hist : hist_vec)
         {
             int acc = 0;
-            std::array<int, 256> lut{};
+            std::array<uchar, 256> lut{};
             for (int i = 0; i < hist.size(); i++)
             {
                 acc += hist.at(i);
@@ -93,15 +94,14 @@ namespace cvu
                 const cv::Point p(x, y);
                 if (p.x < src.cols && p.y < src.rows)
                 {
-                    float vx = ((float)p.x) / tile_size.width - 0.5f;
+                    float vx = (float)p.x / tile_size.width - 0.5f;
                     int left = std::floor(vx);
                     int right = left + 1;
                     float ax = vx - left;
                     float bx = 1.f - ax;
                     right = std::min(right, tile.width - 1);
                     left = std::max(left, 0);
-
-                    float vy = ((float)p.y) / tile_size.height - 0.5f;
+                    float vy = (float)p.y / tile_size.height - 0.5f;
                     int top = std::floor(vy);
                     int bottom = top + 1;
                     float ay = vy - top;

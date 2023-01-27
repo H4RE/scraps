@@ -2,25 +2,38 @@
 #include <opencv2/opencv.hpp>
 #include <clahe.hpp>
 int argc_test;
-char ** argv_test;
+char **argv_test;
 
-TEST(DiffFromCVClahe, clipLimit0)
+TEST(CLAHETest, AccuracyCheck)
 {
-    const cv::Size tiles(8, 8);
-    const float clip_limit = 0.f;
-    // cv::Mat src = cv::Mat::zeros(cv::Size(512, 512), CV_8UC1);
-    cv::Mat src = cv::imread(argv_test[1], cv::IMREAD_GRAYSCALE);
+    const cv::Mat src = cv::imread(argv_test[1], cv::IMREAD_GRAYSCALE);
 
-    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(clip_limit, tiles);
-    cv::Mat dest_cv;
-    clahe->apply(src, dest_cv);
+    const cv::Ptr<cv::CLAHE> cv_clahe = cv::createCLAHE();
+    for (int ty = 1; ty < 30; ty+=3)
+    {
+        for (int tx = 1; tx < 30; tx+=3)
+        {
+            const cv::Size tiles(tx, ty);
 
-    cv::Mat dest = cvu::clahe(src, tiles, clip_limit);
+            cv_clahe->setTilesGridSize(tiles);
 
-    const auto psnr = cv::PSNR(src, src);
-    EXPECT_GT(psnr, 100.0);
+            for (float cl = 1.f; cl < 100.f; cl += 5.f)
+            {
+                cv::Mat dest_cv;
+                cv_clahe->setClipLimit(cl);
+                cv_clahe->apply(src, dest_cv);
+
+                cv::Mat dest = cvu::clahe(src, tiles, cl);
+
+                const double psnr = cv::PSNR(dest_cv, dest);
+                EXPECT_GT(psnr, 50.0) << "Low accuracy: (tile, clip_limit) = (" << tiles << ", " << cl<<")";
+            }
+        }
+    }
 }
-int main (int argc, char * argv[]) {
+
+int main(int argc, char *argv[])
+{
     ::testing::InitGoogleTest(&argc, argv);
     argc_test = argc;
     argv_test = argv;
